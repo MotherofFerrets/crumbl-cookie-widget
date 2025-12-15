@@ -2,8 +2,8 @@ name: Update Crumbl Cookies
 
 on:
   schedule:
-    - cron: '0 9 * * 1' # Runs at 09:00 UTC every Monday
-  workflow_dispatch: # Allows manual trigger
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
 
 jobs:
   scrape-and-update:
