@@ -2,8 +2,8 @@ name: Update Crumbl Cookies
 
 on:
   schedule:
-    - cron: '0 9 * * 1' # Runs every Monday
-  workflow_dispatch: # Allows manual button click
+    - cron: '0 9 * * 1' # Runs at 09:00 UTC every Monday
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   scrape-and-update:
@@ -20,8 +20,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd crumbl-notion-widget
-          run: |
           cd crumbl-notion-widget
           npm install
 
