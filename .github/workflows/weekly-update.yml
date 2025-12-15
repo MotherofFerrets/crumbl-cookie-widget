@@ -1,13 +1,20 @@
 name: Update Crumbl Cookies
+
 on:
   schedule:
-    # Runs at 09:00 UTC every Monday (which is 4:00 AM EST)
+    # Runs at 09:00 UTC every Monday (4:00 AM EST)
     - cron: '0 9 * * 1'
-  workflow_dispatch: # Allows you to click a button to run it manually if needed
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
+    
+    # ⬇️ THIS IS THE FIX: We tell it to work inside your subfolder
+    defaults:
+      run:
+        working-directory: ./crumbl-notion-widget
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -18,11 +25,13 @@ jobs:
           node-version: '18'
 
       - name: Install Dependencies
+        # This will now look for package.json inside the subfolder
         run: npm install
 
       - name: Create Service Account File
-        # We create the secret file on the fly so it's never committed to public code
+        # We create the key inside the subfolder too
         run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account-key.json
 
       - name: Run Scraper
+        # Now this will find the file!
         run: node scrape.js
