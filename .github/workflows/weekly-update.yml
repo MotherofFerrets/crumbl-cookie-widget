@@ -1,0 +1,28 @@
+name: Update Crumbl Cookies
+on:
+  schedule:
+    # Runs at 09:00 UTC every Monday (which is 4:00 AM EST)
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allows you to click a button to run it manually if needed
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Create Service Account File
+        # We create the secret file on the fly so it's never committed to public code
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account-key.json
+
+      - name: Run Scraper
+        run: node scrape.js

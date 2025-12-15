@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Crumbl Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/__/firebase/10.7.1/firebase-app-compat.js"></script>
+    <script src="/__/firebase/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="/__/firebase/init.js?useEmulator=true"></script>
+</head>
+
+<body class="bg-[#F2C2C2] min-h-screen font-sans text-gray-800 flex items-center justify-center p-4">
+
+    <div
+        class="w-full max-w-3xl bg-white rounded-lg overflow-hidden border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+
+        <header class="p-3 border-b-2 border-black bg-white flex justify-between items-baseline">
+            <h1 class="text-lg font-black text-black uppercase tracking-tight">Crumbl Menu</h1>
+            <p id="date-range" class="text-xs font-bold text-gray-500 uppercase tracking-wider">Week of...</p>
+        </header>
+
+        <div id="cookie-list" class="divide-y divide-gray-200">
+            <div id="loading-state" class="p-4 text-center text-xs font-bold text-gray-400 animate-pulse">
+                LOADING COOKIES...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper: Get Current Week Range (Monday - Saturday)
+        function getWeekRange() {
+            const curr = new Date();
+            const first = curr.getDate() - curr.getDay() + 1; // First day is Monday
+            const last = first + 5; // Last day is Saturday
+
+            const monday = new Date(curr.setDate(first));
+            const saturday = new Date(curr.setDate(last));
+
+            const options = { month: 'numeric', day: 'numeric' };
+            return `${monday.toLocaleDateString('en-US', options)} - ${saturday.toLocaleDateString('en-US', options)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set the date header immediately
+            document.getElementById('date-range').innerText = `Week of ${getWeekRange()}`;
+
+            const db = firebase.firestore();
+            const listContainer = document.getElementById('cookie-list');
+            const loadingState = document.getElementById('loading-state');
+
+            try {
+                const snapshot = await db.collection('weekly_flavors').get();
+                if (loadingState) loadingState.remove();
+
+                if (snapshot.empty) {
+                    listContainer.innerHTML = `<div class="p-4 text-center text-xs">No cookies found.</div>`;
+                    return;
+                }
+
+                // Sort: Try to put "Milk Chocolate" last if it exists, or just keep default order
+                let cookies = [];
+                snapshot.forEach(doc => cookies.push(doc.data()));
+
+                let index = 0;
+                cookies.forEach(cookie => {
+                    // Alternating backgrounds: White vs Very Light Pink
+                    const rowBg = index % 2 === 0 ? 'bg-white' : 'bg-pink-50/50';
+
+                    const row = `
+                        <div class="flex items-center p-2 gap-3 ${rowBg} hover:bg-pink-100 transition-colors">
+                            <div class="flex-shrink-0">
+                                <img src="${cookie.image_url}" alt="${cookie.name}" 
+                                     class="w-10 h-10 object-cover rounded border border-gray-300 shadow-sm">
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-baseline gap-2">
+                                    <h3 class="text-sm font-bold text-gray-900 truncate">${cookie.name}</h3>
+                                </div>
+                                <p class="text-xs text-gray-600 leading-tight line-clamp-2">${cookie.description}</p>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.innerHTML += row;
+                    index++;
+                });
+
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = `<div class="p-4 text-center text-red-500 text-xs">Error loading data.</div>`;
+            }
+        });
+    </script>
+</body>
+
+</html>
